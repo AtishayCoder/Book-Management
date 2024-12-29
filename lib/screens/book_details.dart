@@ -146,9 +146,9 @@ class _BookDetailsState extends State<BookDetails> {
                             );
                           }
                           pagesRead += pagesReadToday;
-                          if (pagesRead > widget.totalPages) {
-                            showDialog(
-                              context: context,
+                          if (pagesRead >= widget.totalPages) {
+                            showModalBottomSheet(
+                              context: context.mounted ? context : context,
                               builder:
                                   (context) => Padding(
                                     padding: const EdgeInsets.all(20.0),
