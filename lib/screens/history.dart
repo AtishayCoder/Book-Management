@@ -13,7 +13,7 @@ class History extends StatefulWidget {
 class _HistoryState extends State<History> {
   bool controller = false;
   List<Widget> completeTasks = [];
-  bool noCompletions = false;
+  bool completions = true;
 
   @override
   void initState() {
@@ -23,13 +23,14 @@ class _HistoryState extends State<History> {
         controller = true;
       });
       var prefs = await SharedPreferences.getInstance();
-      if (prefs.containsKey("complete-books")) {
-        for (var book in prefs.getStringList("complete-books")!) {
+      if (prefs.containsKey("completed-books") &&
+          prefs.getStringList("completed-books")!.isNotEmpty) {
+        for (var book in prefs.getStringList("completed-books")!) {
           var pages = prefs.getInt("$book-total-pages")!;
           completeTasks.add(CompleteBook(name: book, totalPages: pages));
         }
       } else {
-        noCompletions = true;
+        completions = false;
       }
       setState(() {
         controller = false;
@@ -42,7 +43,7 @@ class _HistoryState extends State<History> {
     return ModalProgressHUD(
       inAsyncCall: controller,
       child:
-          noCompletions == false
+          completions
               ? SingleChildScrollView(
                 padding: EdgeInsets.all(35.0),
                 child: Column(children: completeTasks),

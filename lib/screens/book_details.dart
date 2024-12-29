@@ -118,7 +118,11 @@ class _BookDetailsState extends State<BookDetails> {
                       ),
                     ),
                     onChanged: (val) {
-                      pagesReadToday = int.parse(val);
+                      try {
+                        pagesReadToday = int.parse(val);
+                      } catch (e) {
+                        pagesReadToday = 0;
+                      }
                     },
                   ),
                   SizedBox(height: 15),
@@ -126,6 +130,7 @@ class _BookDetailsState extends State<BookDetails> {
                     builder: (context) {
                       return MaterialButton(
                         onPressed: () async {
+                          FocusManager.instance.primaryFocus?.unfocus();
                           setState(() {
                             controller = true;
                           });
@@ -146,72 +151,84 @@ class _BookDetailsState extends State<BookDetails> {
                             );
                           }
                           pagesRead += pagesReadToday;
+                          print(pagesRead);
                           if (pagesRead >= widget.totalPages) {
-                            showModalBottomSheet(
-                              context: context.mounted ? context : context,
-                              builder:
-                                  (context) => Padding(
-                                    padding: const EdgeInsets.all(20.0),
-                                    child: Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            "Congrats on completing this book!",
-                                          ),
-                                          SizedBox(height: 10),
-                                          MaterialButton(
-                                            onPressed: () async {
-                                              Get.back();
-                                              setState(() {
-                                                controller = true;
-                                              });
-                                              var prefs =
-                                                  await SharedPreferences.getInstance();
-                                              await prefs.remove(
-                                                "${widget.bookName}-read-pages",
-                                              );
-                                              List<String> tempList =
-                                                  prefs.getStringList("books")!;
-                                              tempList.remove(widget.bookName);
-                                              await prefs.setStringList(
-                                                "books",
-                                                tempList,
-                                              );
-                                              if (prefs.containsKey(
-                                                "completed-books",
-                                              )) {
-                                                List<String> list =
-                                                    prefs.getStringList(
-                                                      "completed-books",
-                                                    )!;
-                                                list.add(widget.bookName);
-                                                await prefs.setStringList(
-                                                  "completed-books",
-                                                  list,
-                                                );
-                                              } else {
-                                                await prefs.setStringList(
-                                                  "completed-books",
-                                                  [widget.bookName],
-                                                );
-                                              }
-                                              setState(() {
-                                                controller = false;
-                                              });
-                                              Get.back();
-                                            },
-                                            minWidth: double.infinity,
-                                            elevation: 7.0,
-                                            child: Text("Cancel"),
-                                          ),
-                                        ],
+                            print("Showing bottom sheet.");
+                            Get.bottomSheet(
+                              Padding(
+                                padding: const EdgeInsets.all(30.0),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "Congrats on completing this book! You will now see it in the history section.",
+                                        style: TextStyle(
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                    ),
+                                      SizedBox(height: 10),
+                                      MaterialButton(
+                                        color: Colors.blueAccent,
+                                        onPressed: () async {
+                                          Get.back();
+                                          setState(() {
+                                            controller = true;
+                                          });
+                                          var prefs =
+                                              await SharedPreferences.getInstance();
+                                          await prefs.remove(
+                                            "${widget.bookName}-read-pages",
+                                          );
+                                          List<String> tempList =
+                                              prefs.getStringList("books")!;
+                                          tempList.remove(widget.bookName);
+                                          await prefs.setStringList(
+                                            "books",
+                                            tempList,
+                                          );
+                                          if (prefs.containsKey(
+                                            "completed-books",
+                                          )) {
+                                            List<String> list =
+                                                prefs.getStringList(
+                                                  "completed-books",
+                                                )!;
+                                            list.add(widget.bookName);
+                                            await prefs.setStringList(
+                                              "completed-books",
+                                              list,
+                                            );
+                                          } else {
+                                            await prefs.setStringList(
+                                              "completed-books",
+                                              [widget.bookName],
+                                            );
+                                          }
+                                          setState(() {
+                                            controller = false;
+                                          });
+                                          Get.back();
+                                        },
+                                        minWidth: double.infinity,
+                                        elevation: 7.0,
+                                        child: Text("Cancel"),
+                                      ),
+                                    ],
                                   ),
+                                ),
+                              ),
+                              ignoreSafeArea: false,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(30.0),
+                                  topRight: Radius.circular(30.0),
+                                ),
+                              ),
                             );
                           } else {
+                            print("Book incomplete. Adding vals.");
                             pagesRemaining = widget.totalPages - pagesRead;
                             percentComplete = double.parse(
                               ((pagesRead / widget.totalPages) * 100)
